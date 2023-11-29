@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SVG Text with Different Fonts - JavaScript</title>
+</head>
+
+<body>
+    <svg id="original-svg" width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Text elements with different fonts -->
+        <text x="20" y="40" font-family="Arial" font-size="24" fill="black">Arial Font</text>
+        <text x="20" y="80" font-family="Times New Roman" font-size="24" fill="red">Times New Roman Font</text>
+        <text x="20" y="120" font-family="Verdana" font-size="24" fill="blue">Verdana Font</text>
+        <text x="20" y="160" font-family="Courier New" font-size="24" fill="green">Courier New Font</text>
+    </svg>
+    <div id="empty-element" style="height: 400px;width: 400px;">
+
+        <script>
+            // Function to print text content of all text elements in SVG
+            function printTextContent() {
+                const og_svg = document.getElementById('original-svg');
+                const svg = og_svg.cloneNode()
+
+
+                const textElements = og_svg.getElementsByTagName('text');
+
+                for (let i = 0; i < textElements.length; i++) {
+                    const element = textElements[i];
+                    const textContent = element.textContent;
+                    console.log('Text content:', textContent);
+
+                    newElement = document.createElementNS("http://www.w3.org/2000/svg", element.tagName);
+                    newElement.textContent = element.textContent;
+                    for (let j = 0; j < element.attributes.length; j++) {
+                        const attr = element.attributes[j];
+                        newElement.setAttribute(attr.name, attr.value);
+                    }
+                    svg.appendChild(newElement);
+                }
+
+                const empty = document.getElementById('empty-element');
+                empty.replaceWith(svg);
+
+            }
+
+            // Call the function to print text content of text elements in the SVG
+            printTextContent();
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SVG Paths Example</title>
+  <style>
+    /* Example styling for copied elements */
+    #copySVG * {
+      border: 1px solid black;
+      /* Add a border for visibility */
+      padding: 5px;
+      /* Add padding */
+      margin: 5px;
+      /* Add margin */
+    }
+  </style>
+  <!-- <script src="https://maker.js.org/target/js/browser.maker.js" type="text/javascript"></script>
+  <script src="https://pomax.github.io/bezierjs/bezier.js" type="text/javascript"></script>
+<script src="http://opentype.js.org/dist/opentype.js" type="text/javascript"></script> -->
+
+  <script src="https://cdn.jsdelivr.net/npm/makerjs@0/target/js/browser.maker.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bezier-js@2/bezier.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/opentype.js@0/dist/opentype.js"></script>
+</head>
+
+<body>
+  <svg id="original-svg" width="400" height="200">
+    <!-- Closed geometries with straight lines -->
+    <g>
+
+      <path d="M30,30 L80,30 L80,80 L30,80 Z" fill=None stroke="blue" stroke-width="2px" />
+      <path d="M130,55 L170,15 L210,55 Z" fill=None stroke="red" stroke-width="2px" />
+
+      <path d="M0,0 L80,30 L80,80 L30,80 Z" fill=None stroke="blue" stroke-width="2px" />
+    </g>
+    <!-- Closed geometries with curved lines -->
+    <path d="M220,30 Q270,60 220,90 Z" fill=None stroke="green" stroke-width="2px" />
+    <path d="M270,70 C320,40 320,100 270,130 Z" fill=None stroke="yellow" stroke-width="2px" />
+
+    <!-- Open text -->
+    <text x="30" y="150" font-family="Arial" font-size="20" fill=None stroke-width="2px" stroke="black">SVG Paths</text>
+
+    <!-- Open geometry -->
+    <path d="M100,150 L250,150" stroke="purple" />
+  </svg>
+
+  <div id="empty-element" style="height: 400px;width: 400px;">
+    <!-- You can add content or modify this empty element using JavaScript -->
+  </div>
+
+  <script>
+
+    function isPathClosed(pathElement) {
+      if (pathElement.tagName.toLowerCase() !== 'path') {
+        return false; // Not a <path> element
+      }
+
+      const dAttribute = pathElement.getAttribute('d');
+      if (!dAttribute || dAttribute.trim() === '') {
+        return false; // No 'd' attribute or empty
+      }
+
+      // Get the 'd' attribute value and check if it ends with 'Z' (indicating a closed path)
+      return dAttribute.trim().endsWith('Z');
+    }
+
+
+    // Function to manipulate SVG using Maker.js
+    function recursivelyCopy(element) {
+      let newElement = document.createElement(element.tagName);
+      if (element instanceof SVGElement) {
+
+
+        newElement = document.createElementNS("http://www.w3.org/2000/svg", element.tagName);
+      }
+
+      if (element.tagName === "text") {
+        newElement.textContent = element.textContent;
+      }
+
+      // Copy attributes (if needed)
+      for (let j = 0; j < element.attributes.length; j++) {
+        const attr = element.attributes[j];
+        newElement.setAttribute(attr.name, attr.value);
+      }
+      if (isPathClosed(newElement)) {
+        newElement = manipulateSVGWithMakerJS(newElement,element.getBBox());
+      }
+
+
+      // Iterate through each child node
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const child = element.childNodes[i];
+
+        if (child.nodeType === Node.ELEMENT_NODE) {
+
+          // Append the new element to the target element
+          newElement.appendChild(recursivelyCopy(child));
+
+        }
+      }
+      return newElement
+    }
+    function manipulateSVGWithMakerJS(element, bbox) {
+      // Get the original SVG element
+
+      let offset = 6.01;
+      // Convert the SVG content to a string
+      var makerjs = require('makerjs');
+      let d = element.getAttribute('d');
+      // Use Maker.js to modify the SVG (Example: Here, we're rotating the SVG)
+      let model = makerjs.importer.fromSVGPathData(d);
+
+      let m = makerjs.model.outline(model, offset); // Rotate by 45 degrees (modify this as needed)
+
+      // Convert the modified Maker.js model back to an SVG string
+      const modifiedSVGString = makerjs.exporter.toSVGPathData(m);
+
+      element.setAttribute('d', modifiedSVGString);
+      group = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+      group.appendChild(element.cloneNode());
+
+      group.setAttribute('transform', 'translate(' + (bbox.x - offset) + ', ' + (bbox.y  - offset) + ')');
+
+      return group;
+    }
+
+    // Call the function to manipulate and place the modified SVG into the empty div
+    const originalSVG = document.getElementById('original-svg');
+    const empty = document.getElementById('empty-element');
+    // Call the function to recursively copy the DOM structure
+
+    copySVG = recursivelyCopy(originalSVG);
+
+    copySVG.id = "copySVG";
+    empty.replaceWith(copySVG);
+  </script>
+</body>
+
+</html>
